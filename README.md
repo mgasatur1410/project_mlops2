@@ -26,6 +26,10 @@ git clone https://github.com/mgasatur1410/project_mlops2.git
 - Разместите предобученную модель CatBoost в `model/catboost_model.cbm`
 - Поместите файл с тестовыми транзакциями в `input/test.csv`
 
+## Где взять test_processed.csv и модель
+- **test_processed.csv**: https://drive.google.com/file/d/1JojlNmhOaKfnaAezB1fxUclDFnmsogH0/view?usp=sharing
+- **catboost_model.cbm**: https://drive.google.com/file/d/12ByZn00cUYWrQXP03ffjHk0L1z6EGl8C/view?usp=sharing
+
 ### 3. Запуск системы
 ```bash
 docker-compose up -d
