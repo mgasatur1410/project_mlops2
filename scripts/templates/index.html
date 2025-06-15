@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraud Transaction Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .histogram {
+            width: 100%;
+            max-height: 400px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Fraud Transaction Dashboard</h1>
+            <p>Monitor and analyze fraud transactions in real-time</p>
+        </div>
+        
+        <div class="card">
+            <h2>Actions</h2>
+            <button id="loadDataBtn" class="btn">Посмотреть результаты</button>
+        </div>
+        
+        <div class="card">
+            <h2>Recent Fraud Transactions</h2>
+            <div id="fraudTable">
+                <p class="loading">Click "Посмотреть результаты" to load data</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Score Distribution (Last 100 Transactions)</h2>
+            <div id="histogram">
+                <p class="loading">Click "Посмотреть результаты" to load data</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadDataBtn = document.getElementById('loadDataBtn');
+            const fraudTable = document.getElementById('fraudTable');
+            const histogram = document.getElementById('histogram');
+            
+            loadDataBtn.addEventListener('click', function() {
+                loadFraudTransactions();
+                loadHistogram();
+            });
+            
+            function loadFraudTransactions() {
+                fraudTable.innerHTML = '<p class="loading">Loading fraud transactions...</p>';
+                
+                fetch('/api/fraud-transactions')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length === 0) {
+                            fraudTable.innerHTML = '<p>No fraud transactions found.</p>';
+                            return;
+                        }
+                        
+                        let tableHTML = `
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Transaction ID</th>
+                                        <th>Fraud Score</th>
+                                        <th>Timestamp</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+                        
+                        data.forEach(item => {
+                            tableHTML += `
+                                <tr>
+                                    <td>${item.transaction_id}</td>
+                                    <td>${item.score.toFixed(4)}</td>
+                                    <td>${item.created_at}</td>
+                                </tr>
+                            `;
+                        });
+                        
+                        tableHTML += `
+                                </tbody>
+                            </table>
+                        `;
+                        
+                        fraudTable.innerHTML = tableHTML;
+                    })
+                    .catch(error => {
+                        fraudTable.innerHTML = `<p>Error loading data: ${error}</p>`;
+                    });
+            }
+            
+            function loadHistogram() {
+                histogram.innerHTML = '<p class="loading">Generating histogram...</p>';
+                
+                // Use a timestamp to prevent caching
+                const timestamp = new Date().getTime();
+                const img = new Image();
+                img.onload = function() {
+                    histogram.innerHTML = '';
+                    img.className = 'histogram';
+                    histogram.appendChild(img);
+                };
+                img.onerror = function() {
+                    histogram.innerHTML = '<p>No data available for histogram or error loading image</p>';
+                };
+                img.src = `/api/score-histogram?t=${timestamp}`;
+            }
+        });
+    </script>
+</body>
+</html> 
